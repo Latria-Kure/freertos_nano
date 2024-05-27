@@ -41,8 +41,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 // clang-format off
-#define TASK1_STACK_SIZE            20
-#define TASK2_STACK_SIZE            20
+#define TASK1_STACK_SIZE            128
+#define TASK2_STACK_SIZE            128
 // clang-format on
 /* USER CODE END PM */
 
@@ -50,6 +50,10 @@
 portCHAR flag1;
 portCHAR flag2;
 /* USER CODE BEGIN PV */
+/* Stack size should be assigned enough. For the stack space is near the according Task TCB structure.
+ * If the stack size is not enough, the stack will overflow and the member of TCB structure will be unexpectedly modified.
+ * Why the overflow accurs? For subroutine call, the stack will be used, PSP will decrease, and the stack will be used.
+ */
 extern List_t pxReadyTasksLists[configMAX_PRIORITIES];
 TaskHandle_t Task1_Handle;
 StackType_t Task1Stack[TASK1_STACK_SIZE];
@@ -104,11 +108,11 @@ void Task1(void* pvParameters)
 {
     while (1) {
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
-        vTaskDelay(100);
+        vTaskDelay(5);
         // delay(100000);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
         // delay(100000);
-        vTaskDelay(100);
+        vTaskDelay(5);
         portYIELD();
     }
 }
@@ -118,10 +122,10 @@ void Task2(void* pvParameters)
     while (1) {
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
         // delay(100000);
-        vTaskDelay(100);
+        vTaskDelay(5);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
         // delay(100000);
-        vTaskDelay(100);
+        vTaskDelay(5);
         portYIELD();
     }
 }
@@ -173,19 +177,21 @@ int main(void)
         (char*)"Task1",
         (uint32_t)TASK1_STACK_SIZE,
         (void*)NULL,
+        (UBaseType_t)1,
         (StackType_t*)Task1Stack,
         (TCB_t*)&Task1TCB);
 
-    vListInsertEnd(&(pxReadyTasksLists[1]), &(((TCB_t*)(&Task1TCB))->xStateListItem));
+    // vListInsertEnd(&(pxReadyTasksLists[1]), &(((TCB_t*)(&Task1TCB))->xStateListItem));
 
     Task2_Handle = xTaskCreateStatic((TaskFunction_t)Task2,
         (char*)"Task2",
         (uint32_t)TASK2_STACK_SIZE,
         (void*)NULL,
+        (UBaseType_t)2,
         (StackType_t*)Task2Stack,
         (TCB_t*)&Task2TCB);
 
-    vListInsertEnd(&(pxReadyTasksLists[2]), &(((TCB_t*)(&Task2TCB))->xStateListItem));
+    // vListInsertEnd(&(pxReadyTasksLists[2]), &(((TCB_t*)(&Task2TCB))->xStateListItem));
     vTaskStartScheduler();
 
     /* USER CODE END 2 */
