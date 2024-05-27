@@ -59,16 +59,15 @@ UBaseType_t uxListRemove(ListItem_t* const pxItemToRemove);
 #define listCURRENT_LIST_LENGTH(pxList) \
     ((pxList)->uxNumberOfItems)
 
-// TCB means Task Control Block
 #define listGET_OWNER_OF_NEXT_ENTRY(pxTCB, pxList)                                \
-    {                                                                             \
+    do {                                                                          \
         List_t* const pxConstList = (pxList);                                     \
         (pxConstList)->pxIndex = (pxConstList)->pxIndex->pxNext;                  \
         if ((void*)(pxConstList)->pxIndex == (void*)&((pxConstList)->xListEnd)) { \
             (pxConstList)->pxIndex = (pxConstList)->pxIndex->pxNext;              \
         }                                                                         \
         (pxTCB) = (pxConstList)->pxIndex->pvOwner;                                \
-    }
+    } while (0)
 
 #define listGET_OWNER_OF_HEAD_ENTRY(pxList) ((&((pxList)->xListEnd))->pxNext->pvOwner)
 

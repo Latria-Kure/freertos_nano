@@ -14,6 +14,7 @@
 #define xPortSysTickHandler                         SysTick_Handler
 #define vPortSVCHandler                             SVC_Handler
 
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION    1
 #define configASSERT( x )         \
     if( ( x ) == 0 )              \
     {                             \

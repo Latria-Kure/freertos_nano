@@ -3,6 +3,8 @@
 
 #include "FreeRTOS.h"
 
+// clang-format off
+#define tskIDLE_PRIORITY			       ( ( UBaseType_t ) 0U )
 #define taskYIELD() portYIELD()
 
 typedef void* TaskHandle_t;
@@ -12,6 +14,7 @@ TaskHandle_t xTaskCreateStatic(TaskFunction_t pxTaskCode,
     const char* const pcName,
     const uint32_t ulStackDepth,
     void* const pvParameters,
+    UBaseType_t uxPriority,
     StackType_t* const puxStackBuffer,
     TCB_t* const pxTaskBuffer);
 #endif /* configSUPPORT_STATIC_ALLOCATION */

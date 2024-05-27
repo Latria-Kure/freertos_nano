@@ -27,6 +27,10 @@ typedef unsigned long UBaseType_t;
 
 #endif
 
+#ifndef configUSE_PORT_OPTIMISED_TASK_SELECTION
+    #define configUSE_PORT_OPTIMISED_TASK_SELECTION    1
+#endif
+
 #define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void *pvParameters )
 /* portNOP() is not required by this port. */
 #define portNOP()
@@ -55,6 +59,37 @@ typedef unsigned long UBaseType_t;
         __asm volatile ( "isb" );                                  \
     }
 
+/*-----------------------------------------------------------*/
+/* Architecture specific optimisations. 
+ * By using this optimised method, the uxTopReadyPriority variable is treated as a bit map, not a number.
+ * So now there are only 32 possible priorities, and the number of priorities is limited to 32.
+ * uxTopPriority is still treated as a number for it will be used to subscript the pxReadyTasksLists. 
+ */
+#ifndef configUSE_PORT_OPTIMISED_TASK_SELECTION
+    #define configUSE_PORT_OPTIMISED_TASK_SELECTION    1
+#endif
+
+#if configUSE_PORT_OPTIMISED_TASK_SELECTION == 1
+/* Generic helper function. */
+    __attribute__( ( always_inline ) ) static inline uint8_t ucPortCountLeadingZeros( uint32_t ulBitmap )
+    {
+        uint8_t ucReturn;
+        __asm volatile ( "clz %0, %1" : "=r" ( ucReturn ) : "r" ( ulBitmap ) : "memory" );
+        return ucReturn;
+    }
+
+/* Check the configuration. */
+    #if ( configMAX_PRIORITIES > 32 )
+        #error configUSE_PORT_OPTIMISED_TASK_SELECTION can only be set to 1 when configMAX_PRIORITIES is less than or equal to 32.  It is very rare that a system requires more than 10 to 15 difference priorities as tasks that share a priority will time slice.
+    #endif
+
+/* Store/clear the ready priorities in a bit map. */
+    #define portRECORD_READY_PRIORITY( uxPriority, uxReadyPriorities )    ( uxReadyPriorities ) |= ( 1UL << ( uxPriority ) )
+    #define portRESET_READY_PRIORITY( uxPriority, uxReadyPriorities )     ( uxReadyPriorities ) &= ~( 1UL << ( uxPriority ) )
+
+    #define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities )    uxTopPriority = ( 31UL - ( uint32_t ) ucPortCountLeadingZeros( ( uxReadyPriorities ) ) )
+
+#endif /* configUSE_PORT_OPTIMISED_TASK_SELECTION */
 /*-----------------------------------------------------------*/
 
 /* Critical section management. */
