@@ -43,6 +43,7 @@
 // clang-format off
 #define TASK1_STACK_SIZE            128
 #define TASK2_STACK_SIZE            128
+#define TASK3_STACK_SIZE            128
 // clang-format on
 /* USER CODE END PM */
 
@@ -62,6 +63,10 @@ TCB_t Task1TCB;
 TaskHandle_t Task2_Handle;
 StackType_t Task2Stack[TASK2_STACK_SIZE];
 TCB_t Task2TCB;
+
+TaskHandle_t Task3_Handle;
+StackType_t Task3Stack[TASK2_STACK_SIZE];
+TCB_t Task3TCB;
 
 /* Idle task define */
 #define configMINIMAL_STACK_SIZE ((uint16_t)128)
@@ -108,12 +113,11 @@ void Task1(void* pvParameters)
 {
     while (1) {
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
-        vTaskDelay(5);
-        // delay(100000);
+        // vTaskDelay(5);
+        delay(100);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
-        // delay(100000);
-        vTaskDelay(5);
-        portYIELD();
+        delay(100);
+        // vTaskDelay(5);
     }
 }
 
@@ -121,12 +125,23 @@ void Task2(void* pvParameters)
 {
     while (1) {
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-        // delay(100000);
-        vTaskDelay(5);
+        delay(100);
+        // vTaskDelay(5);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+        delay(100);
+        // vTaskDelay(5);
+    }
+}
+
+void Task3(void* pvParameters)
+{
+    while (1) {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
         // delay(100000);
-        vTaskDelay(5);
-        portYIELD();
+        vTaskDelay(1);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
+        // delay(100000);
+        vTaskDelay(1);
     }
 }
 /* USER CODE END 0 */
@@ -177,7 +192,7 @@ int main(void)
         (char*)"Task1",
         (uint32_t)TASK1_STACK_SIZE,
         (void*)NULL,
-        (UBaseType_t)1,
+        (UBaseType_t)2,
         (StackType_t*)Task1Stack,
         (TCB_t*)&Task1TCB);
 
@@ -190,6 +205,14 @@ int main(void)
         (UBaseType_t)2,
         (StackType_t*)Task2Stack,
         (TCB_t*)&Task2TCB);
+
+    Task3_Handle = xTaskCreateStatic((TaskFunction_t)Task3,
+        (char*)"Task3",
+        (uint32_t)TASK3_STACK_SIZE,
+        (void*)NULL,
+        (UBaseType_t)3,
+        (StackType_t*)Task3Stack,
+        (TCB_t*)&Task3TCB);
 
     // vListInsertEnd(&(pxReadyTasksLists[2]), &(((TCB_t*)(&Task2TCB))->xStateListItem));
     vTaskStartScheduler();

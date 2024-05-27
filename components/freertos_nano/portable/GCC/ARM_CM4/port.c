@@ -198,7 +198,9 @@ void xPortSysTickHandler(void)
 {
     portDISABLE_INTERRUPTS();
 
-    xTaskIncrementTick();
+    if (xTaskIncrementTick() != pdFALSE) {
+        taskYIELD();
+    }
 
     portENABLE_INTERRUPTS();
 }

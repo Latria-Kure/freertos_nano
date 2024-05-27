@@ -321,7 +321,6 @@ void vTaskDelay(const TickType_t xTicksToDelay)
 
     pxTCB = pxCurrentTCB;
 
-
     prvAddCurrentTaskToDelayedList(xTicksToDelay);
 
     portYIELD();
@@ -346,10 +345,11 @@ static void prvResetNextTaskUnblockTime(void)
 }
 /*-----------------------------------------------------------*/
 
-void xTaskIncrementTick(void)
+BaseType_t xTaskIncrementTick(void)
 {
     TCB_t* pxTCB;
     TickType_t xItemValue;
+    BaseType_t xSwitchRequired = pdFALSE;
 
     const TickType_t xConstTickCount = xTickCount + 1;
     xTickCount = xConstTickCount;
@@ -374,9 +374,21 @@ void xTaskIncrementTick(void)
                 // remove from delayed list
                 uxListRemove(&(pxTCB->xStateListItem));
                 prvAddTaskToReadyList(pxTCB);
+
+#if (configUSE_PREEMPTION == 1)
+                if (pxTCB->uxPriority > pxCurrentTCB->uxPriority) {
+                    xSwitchRequired = pdTRUE;
+                }
+#endif
             }
         }
     }
+#if ((configUSE_PREEMPTION == 1) && (configUSE_TIME_SLICING == 1))
+    if (listCURRENT_LIST_LENGTH(&(pxReadyTasksLists[tskIDLE_PRIORITY])) > 1) {
+        xSwitchRequired = pdTRUE;
+    }
 
-    portYIELD();
+#endif
+
+    return xSwitchRequired;
 }

@@ -6,6 +6,8 @@
 #define configMAX_TASK_NAME_LEN                     (16)
 #define configSUPPORT_STATIC_ALLOCATION             1
 #define configMAX_PRIORITIES                        (5)
+#define configUSE_PREEMPTION                        1
+#define configUSE_TIME_SLICING                      1
 
 #define configKERNEL_INTERRUPT_PRIORITY             255
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY        191
